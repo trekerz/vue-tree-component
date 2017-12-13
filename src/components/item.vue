@@ -51,9 +51,6 @@
 	            if (this.hasChild) {
 	                this.open = !this.open
 	            }
-	        },
-	        deleteChild: function() {
-	        	// 侦听子节点发出的删除事件
 	        }
 	    }
 	}
