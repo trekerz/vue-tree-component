@@ -1,48 +1,76 @@
 <template>
-	<span>
-		<span class="addChild" @click="addChild">(A)</span>
-		<span class="modifyNode" @click="modifyNode">(M)</span>
-		<span class="deleteNode" @click="deleteNode">(D)</span>
+	<span class="tools">
+		<span
+		class="el-icon el-icon-circle-plus-outline"
+		key="add-child"
+		v-if="isFolder || !(isNotRoot)"
+		@click="addChildBox"></span>
+		<span
+		class="el-icon el-icon-edit"
+		key="modify-node"
+		@click="modifyNode"></span>
+		<span
+		class="el-icon el-icon-delete"
+		key="delete-node"
+		@click="deleteNodeBox"
+		v-if="isNotRoot"></span>
 	</span>
 </template>
 
 <script>
-	import eventBus from '../eventBus.js'
-	
+	import eventBus from '../utils/eventBus.js'
+
 	export default {
 		props: {
 			model: {}
 		},
-		methods: {
-			addChild: function() {
-	        	// 如果当前节点没有子节点，则创建之
-				if (!this.model.children) {
-					this.$set(this.model, 'children', [])
-				}
-
-				var children = this.model.children,
-					id = '';
-
-				// 判断是否为一级节点
-				if (this.model.id === '0') {
-					id = (children.length + 1).toString()
-				} else {
-					id = this.model.id + '-' + (children.length + 1).toString()
-				}
-
-				children.push({
-					name: 'new staff',
-					id: id
-				})
+		computed: {
+			isNotRoot: function() {
+				return this.model.id !== '0'
+			},
+			hasChild: function() {
+	            return this.model.children &&
+	                this.model.children.length
 	        },
-			deleteNode: function() { // 这里可能需要弹出框再次确认
+	        isFolder: function() {
+	        	return this.model.fileType === 'folder'
+	        }
+		},
+		methods: {
+			deleteNodeBox: function() { // 弹出框再次确认
 				// 触发删除事件到事件总线
-				eventBus.$emit('deleteNode',this.model.id)
+				// id用于搜索删除项，name用于弹出框展示
+				eventBus.$emit('deleteNodeBox', this.model.name, this.model.id)
+			},
+			addChildBox: function() {
+				// 这里必须先判断有没有子节点
+				if (!this.model.children) {
+					Vue.set(this.model, 'children', [])
+				}
+
+				eventBus.$emit('addChildBox', this.model.name, this.model.id, this.model.children)
 			},
 			modifyNode: function() {
-				// 可能需要用弹出框的方式来修改节点信息
+				eventBus.$emit('modifyNodeBox', this.model)
 			}
 		}
 	}
-
 </script>
+
+<style>
+	/* 后期需考虑浏览器前缀问题 */
+
+	.tools {
+		float: right;
+	}
+	.el-icon {
+		margin: 0 10px;
+		cursor: pointer;
+	}
+	.el-icon:hover {
+		transform: scale(1.2);
+	}
+	.el-icon:active {
+		transform: scale(1.2) translateY(1px);
+	}
+</style>
